@@ -1,0 +1,119 @@
+spring:
+  application:
+    name: aero-personal-assistant
+
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.security.oauth2.client.servlet.OAuth2ClientAutoConfiguration
+
+  datasource:
+    url: ${DB_URL:jdbc:postgresql:
+    username: ${DB_USERNAME:aero_user}
+    password: ${DB_PASSWORD:aero_pass}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 15MB
+
+server:
+  port: ${SERVER_PORT:8080}
+  servlet:
+    context-path: /api
+  error:
+    include-message: always
+    include-binding-errors: always
+
+
+aero:
+  jwt:
+    secret: ${JWT_SECRET:aero-super-secret-key-must-be-at-least-256-bits-long-for-HS256}
+    expiration: ${JWT_EXPIRATION:86400000}        # 24h  in ms
+    refresh-expiration: ${JWT_REFRESH_EXP:604800000} # 7d  in ms
+
+  upload:
+    dir: ${UPLOAD_DIR:./uploads}
+    allowed-types: image/jpeg,image/png,image/webp
+    max-size: 10485760   # 10 MB
+
+  frontend:
+    url: ${FRONTEND_URL:http:
+
+  ai:
+    groq:
+      api-key: ${GROQ_API_KEY:}
+      base-url: ${GROQ_BASE_URL:https:
+      model: ${GROQ_MODEL:llama-3.1-8b-instant}
+
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: method
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+
+logging:
+  level:
+    com.aero: DEBUG
+    org.springframework.security: INFO
