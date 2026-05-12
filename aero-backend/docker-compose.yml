@@ -1,0 +1,84 @@
+version: "3.9"
+
+
+services:
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: aero_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB:       ${DB_NAME:-aero_db}
+      POSTGRES_USER:     ${DB_USERNAME:-aero_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-aero_pass}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --lc-collate=C --lc-ctype=C"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-aero_user} -d ${DB_NAME:-aero_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - aero_net
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+    container_name: aero_app
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_URL:      jdbc:postgresql://postgres:5432/${DB_NAME:-aero_db}
+      DB_USERNAME: ${DB_USERNAME:-aero_user}
+      DB_PASSWORD: ${DB_PASSWORD:-aero_pass}
+
+      JWT_SECRET:      ${JWT_SECRET:-change-me-in-production-must-be-256-bits-long!!}
+      JWT_EXPIRATION:  ${JWT_EXPIRATION:-86400000}
+      JWT_REFRESH_EXP: ${JWT_REFRESH_EXP:-604800000}
+
+      MAIL_HOST:     ${MAIL_HOST:-smtp.gmail.com}
+      MAIL_PORT:     ${MAIL_PORT:-587}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+
+      GOOGLE_CLIENT_ID:     ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GITHUB_CLIENT_ID:     ${GITHUB_CLIENT_ID:-}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
+
+      GROQ_API_KEY:  ${GROQ_API_KEY:-}
+      GROQ_BASE_URL: ${GROQ_BASE_URL:-https://api.groq.com/openai/v1}
+      GROQ_MODEL:    ${GROQ_MODEL:-llama-3.1-8b-instant}
+
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      UPLOAD_DIR:   /app/uploads
+      SERVER_PORT:  8080
+    volumes:
+      - uploads_data:/app/uploads
+    ports:
+      - "${SERVER_PORT:-8080}:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/api/actuator/health | grep -q UP || exit 1"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+    networks:
+      - aero_net
+
+volumes:
+  postgres_data:
+    driver: local
+  uploads_data:
+    driver: local
+
+networks:
+  aero_net:
+    driver: bridge
