@@ -1,0 +1,10 @@
+# Root gitignore for monorepo
+node_modules/
+dist/
+target/
+.idea/
+*.log
+*.tmp
+.env
+.env.*
+!.env.example
