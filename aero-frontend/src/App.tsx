@@ -64,7 +64,7 @@ function OAuth2Callback() {
   const { setUser } = useAuthStore()
 
   useEffect(() => {
-    const token = params.get('token')
+    const token = params.get('token') || params.get('accessToken')
     if (!token) { navigate('/login'); return }
     
     import('@/api/client').then(({ setTokens }) => {
@@ -72,7 +72,10 @@ function OAuth2Callback() {
       import('@/api/profile.api').then(({ profileApi }) => {
         profileApi.get()
           .then(user => { setUser(user); navigate('/dashboard', { replace: true }) })
-          .catch(() => navigate('/login'))
+          .catch(() => {
+            import('@/api/client').then(({ clearTokens }) => clearTokens())
+            navigate('/login', { replace: true })
+          })
       })
     })
   }, [params, navigate, setUser])

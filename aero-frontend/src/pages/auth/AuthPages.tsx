@@ -184,7 +184,7 @@ export function LoginPage() {
           { name: 'Google', provider: 'google' },
           { name: 'GitHub', provider: 'github' },
         ].map(p => (
-          <a key={p.name} href={`/api/oauth2/authorization/${p.provider}`}
+          <a key={p.name} href={`${apiOrigin}/api/oauth2/authorization/${p.provider}`}
             className="flex items-center justify-center gap-2 h-9 rounded-lg border border-[var(--border)] text-sm font-medium text-txt-secondary hover:text-txt-primary hover:bg-[var(--bg-elevated)] hover:border-[var(--border-strong)] transition-colors">
             {p.name === 'Google' ? (
               <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor">
@@ -217,7 +217,6 @@ type RegisterForm = z.infer<typeof registerSchema>
 export function RegisterPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { setUser } = useAuthStore()
   const [showPwd, setShowPwd] = useState(false)
 
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<RegisterForm>({
@@ -227,8 +226,8 @@ export function RegisterPage() {
   const onSubmit = async (data: RegisterForm) => {
     try {
       const res = await authApi.register(data)
-      setUser(res.user)
-      navigate('/dashboard')
+      toast.success(res.message || 'Registration successful. Check your email for verification.')
+      navigate('/login')
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : 'Registration failed')
     }
@@ -276,3 +275,4 @@ export function RegisterPage() {
     </AuthShell>
   )
 }
+  const apiOrigin = import.meta.env.VITE_API_ORIGIN || 'http://localhost:8080'
