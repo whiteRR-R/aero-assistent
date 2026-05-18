@@ -402,9 +402,9 @@ public class AiBriefService {
         };
     }
 
-    private static boolean isOpenTask(String status) {
+    private static boolean isOpenTask(TaskStatus status) {
         if (status == null) return false;
-        String s = status.trim().toUpperCase(Locale.ROOT);
+        String s = status.name().trim().toUpperCase(Locale.ROOT);
         return !s.equals("DONE") && !s.equals("CANCELLED");
     }
 
