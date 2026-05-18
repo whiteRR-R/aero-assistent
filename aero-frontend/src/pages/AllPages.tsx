@@ -1000,6 +1000,7 @@ export function RemindersPage() {
   const visible = statusFilter === 'ALL' ? reminders : reminders.filter(r => r.status === statusFilter)
 
   const groups:{key:string;label:string;items:ReminderResponse[]}[] = [
+    {key:'past',    label:t('historyTab'),      items:visible.filter(r=>parseISO(r.remindAt)<new Date())},
     {key:'today',   label:t('todayGroup'),    items:visible.filter(r=>format(parseISO(r.remindAt),'yyyy-MM-dd')===format(new Date(),'yyyy-MM-dd'))},
     {key:'tomorrow',label:t('tomorrowGroup'), items:visible.filter(r=>format(parseISO(r.remindAt),'yyyy-MM-dd')===format(addDays(new Date(),1),'yyyy-MM-dd'))},
     {key:'week',    label:t('thisWeekGroup'), items:visible.filter(r=>{const d=parseISO(r.remindAt);return d>addDays(new Date(),1)&&d<=addDays(new Date(),7)})},
