@@ -1,8 +1,8 @@
 package com.aero.security;
 
 import com.aero.entity.User;
+import com.aero.exception.BadRequestException;
 import com.aero.repository.UserRepository;
-import com.aero.util.CookieUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -47,16 +47,17 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         String fullName   = (String) attrs.getOrDefault("name", email);
         String avatarUrl  = (String) attrs.get("picture");
 
-        User user = userRepository.findByEmail(email)
-                .orElseGet(() -> userRepository.save(
-                        User.builder()
-                                .email(email)
-                                .fullName(fullName)
-                                .avatarUrl(avatarUrl)
-                                .provider(registrationId)
-                                .providerId(providerId)
-                                .build()
-                ));
+        User user = userRepository.findByProviderAndProviderId(registrationId, providerId)
+                .orElseGet(() -> userRepository.findByEmail(email).orElseGet(() -> User.builder()
+                        .email(email)
+                        .build()));
+
+        user.setFullName(fullName);
+        user.setAvatarUrl(avatarUrl);
+        user.setProvider(registrationId);
+        user.setProviderId(providerId);
+        user.setEnabled(true);
+        user = userRepository.save(user);
 
         String accessToken = jwtService.generateAccessToken(user.getId(), user.getEmail());
 
@@ -70,11 +71,11 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
 
     private String resolveEmail(String provider, Map<String, Object> attrs) {
-        if ("github".equals(provider)) {
-            Object login = attrs.get("login");
-            return login + "@github.oauth";
+        String email = (String) attrs.get("email");
+        if (email == null || email.isBlank()) {
+            throw new BadRequestException("OAuth provider did not return email. Ensure GitHub scope includes user:email and email is available.");
         }
-        return (String) attrs.get("email");
+        return email;
     }
 
     private String resolveProviderId(String provider, Map<String, Object> attrs) {

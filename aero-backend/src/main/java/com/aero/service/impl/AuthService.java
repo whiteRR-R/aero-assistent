@@ -3,18 +3,25 @@ package com.aero.service.impl;
 import com.aero.dto.request.LoginRequest;
 import com.aero.dto.request.RegisterRequest;
 import com.aero.dto.response.AuthResponse;
+import com.aero.dto.response.MessageResponse;
 import com.aero.dto.response.UserResponse;
+import com.aero.entity.EmailVerificationToken;
 import com.aero.entity.RefreshToken;
 import com.aero.entity.User;
+import com.aero.exception.BadRequestException;
 import com.aero.exception.ConflictException;
 import com.aero.exception.UnauthorizedException;
 import com.aero.mapper.UserMapper;
+import com.aero.repository.EmailVerificationTokenRepository;
 import com.aero.repository.RefreshTokenRepository;
 import com.aero.repository.UserRepository;
 import com.aero.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,9 +36,11 @@ public class AuthService {
 
     private final UserRepository        userRepo;
     private final RefreshTokenRepository refreshRepo;
+    private final EmailVerificationTokenRepository verificationRepo;
     private final PasswordEncoder        encoder;
     private final JwtService             jwtService;
     private final UserMapper             userMapper;
+    private final JavaMailSender         mailSender;
 
     @Value("${aero.jwt.expiration}")
     private long accessTtl;
@@ -39,10 +48,16 @@ public class AuthService {
     @Value("${aero.jwt.refresh-expiration}")
     private long refreshTtl;
 
+    @Value("${aero.auth.verify-email-ttl-minutes:60}")
+    private long verifyEmailTtlMinutes;
+
+    @Value("${aero.backend.url:http://localhost:8080/api}")
+    private String backendUrl;
+
 
 
     @Transactional
-    public AuthResponse register(RegisterRequest req) {
+    public MessageResponse register(RegisterRequest req) {
         if (userRepo.existsByEmail(req.email())) {
             throw new ConflictException("Email already registered: " + req.email());
         }
@@ -51,12 +66,15 @@ public class AuthService {
                 .email(req.email())
                 .passwordHash(encoder.encode(req.password()))
                 .fullName(req.fullName())
+                .enabled(false)
+                .provider("local")
                 .build();
 
         userRepo.save(user);
-        log.info("New user registered: {}", user.getEmail());
+        createAndSendVerificationToken(user);
+        log.info("New user registered (email verification pending): {}", user.getEmail());
 
-        return buildAuthResponse(user);
+        return new MessageResponse("Registration successful. Please verify your email.");
     }
 
 
@@ -76,6 +94,35 @@ public class AuthService {
         }
 
         return buildAuthResponse(user);
+    }
+
+    @Transactional
+    public MessageResponse verifyEmail(String token) {
+        EmailVerificationToken vt = verificationRepo.findByTokenAndUsedAtIsNull(token)
+                .orElseThrow(() -> new BadRequestException("Invalid verification token"));
+
+        if (vt.getExpiresAt().isBefore(Instant.now())) {
+            throw new BadRequestException("Verification token has expired");
+        }
+
+        vt.setUsedAt(Instant.now());
+        User user = vt.getUser();
+        user.setEnabled(true);
+
+        verificationRepo.save(vt);
+        userRepo.save(user);
+
+        return new MessageResponse("Email verified successfully. You can now log in.");
+    }
+
+    @Transactional
+    public MessageResponse resendVerification(String email) {
+        userRepo.findByEmail(email).ifPresent(user -> {
+            if (!Boolean.TRUE.equals(user.getEnabled()) && "local".equalsIgnoreCase(user.getProvider())) {
+                createAndSendVerificationToken(user);
+            }
+        });
+        return new MessageResponse("If the account exists, a verification email has been sent.");
     }
 
 
@@ -126,5 +173,35 @@ public class AuthService {
                         .build()
         );
         return raw;
+    }
+
+    private void createAndSendVerificationToken(User user) {
+        String token = UUID.randomUUID().toString().replace("-", "");
+        verificationRepo.save(
+                EmailVerificationToken.builder()
+                        .user(user)
+                        .token(token)
+                        .expiresAt(Instant.now().plusSeconds(verifyEmailTtlMinutes * 60))
+                        .build()
+        );
+        sendVerificationEmail(user.getEmail(), token);
+    }
+
+    private void sendVerificationEmail(String email, String token) {
+        String verifyUrl = backendUrl + "/auth/verify-email?token=" + token;
+        if (mailSender instanceof JavaMailSenderImpl impl && (impl.getUsername() == null || impl.getUsername().isBlank())) {
+            log.warn("Mail is not configured. Verification link for {}: {}", email, verifyUrl);
+            return;
+        }
+
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setTo(email);
+            message.setSubject("Verify your AERO account");
+            message.setText("Click the link to verify your email:\n" + verifyUrl);
+            mailSender.send(message);
+        } catch (Exception ex) {
+            log.warn("Failed to send verification email to {}. Link: {}", email, verifyUrl, ex);
+        }
     }
 }

@@ -3,7 +3,9 @@ package com.aero.controller;
 import com.aero.dto.request.LoginRequest;
 import com.aero.dto.request.RefreshRequest;
 import com.aero.dto.request.RegisterRequest;
+import com.aero.dto.request.ResendVerificationRequest;
 import com.aero.dto.response.AuthResponse;
+import com.aero.dto.response.MessageResponse;
 import com.aero.security.SecurityUtil;
 import com.aero.service.impl.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -25,8 +27,20 @@ public class AuthController {
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Register a new account")
-    public AuthResponse register(@Valid @RequestBody RegisterRequest req) {
+    public MessageResponse register(@Valid @RequestBody RegisterRequest req) {
         return authService.register(req);
+    }
+
+    @GetMapping("/verify-email")
+    @Operation(summary = "Verify email using token from email")
+    public MessageResponse verifyEmail(@RequestParam String token) {
+        return authService.verifyEmail(token);
+    }
+
+    @PostMapping("/resend-verification")
+    @Operation(summary = "Resend verification email")
+    public MessageResponse resendVerification(@Valid @RequestBody ResendVerificationRequest req) {
+        return authService.resendVerification(req.email());
     }
 
     @PostMapping("/login")

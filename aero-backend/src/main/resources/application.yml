@@ -2,12 +2,8 @@ spring:
   application:
     name: aero-personal-assistant
 
-  autoconfigure:
-    exclude:
-      - org.springframework.boot.autoconfigure.security.oauth2.client.servlet.OAuth2ClientAutoConfiguration
-
   datasource:
-    url: ${DB_URL:jdbc:postgresql:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/aero_db}
     username: ${DB_USERNAME:aero_user}
     password: ${DB_PASSWORD:aero_pass}
     driver-class-name: org.postgresql.Driver
@@ -30,6 +26,17 @@ spring:
     locations: classpath:db/migration
     baseline-on-migrate: true
 
+  security:
+    oauth2:
+      client:
+        registration:
+          github:
+            client-id: ${GITHUB_CLIENT_ID:}
+            client-secret: ${GITHUB_CLIENT_SECRET:}
+            scope:
+              - read:user
+              - user:email
+
   mail:
     host: ${MAIL_HOST:smtp.gmail.com}
     port: ${MAIL_PORT:587}
@@ -41,23 +48,6 @@ spring:
           auth: true
           starttls:
             enable: true
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
   servlet:
     multipart:
@@ -73,27 +63,31 @@ server:
     include-message: always
     include-binding-errors: always
 
-
 aero:
   jwt:
     secret: ${JWT_SECRET:aero-super-secret-key-must-be-at-least-256-bits-long-for-HS256}
-    expiration: ${JWT_EXPIRATION:86400000}        # 24h  in ms
-    refresh-expiration: ${JWT_REFRESH_EXP:604800000} # 7d  in ms
+    expiration: ${JWT_EXPIRATION:86400000}
+    refresh-expiration: ${JWT_REFRESH_EXP:604800000}
+
+  frontend:
+    url: ${FRONTEND_URL:http://localhost:3000}
+
+  backend:
+    url: ${BACKEND_URL:http://localhost:8080/api}
+
+  auth:
+    verify-email-ttl-minutes: ${VERIFY_EMAIL_TTL_MINUTES:60}
 
   upload:
     dir: ${UPLOAD_DIR:./uploads}
     allowed-types: image/jpeg,image/png,image/webp
-    max-size: 10485760   # 10 MB
-
-  frontend:
-    url: ${FRONTEND_URL:http:
+    max-size: 10485760
 
   ai:
     groq:
       api-key: ${GROQ_API_KEY:}
-      base-url: ${GROQ_BASE_URL:https:
+      base-url: ${GROQ_BASE_URL:https://api.groq.com/openai/v1}
       model: ${GROQ_MODEL:llama-3.1-8b-instant}
-
 
 springdoc:
   api-docs:
@@ -102,7 +96,6 @@ springdoc:
     path: /swagger-ui.html
     tags-sorter: alpha
     operations-sorter: method
-
 
 management:
   endpoints:
