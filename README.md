@@ -1,107 +1,107 @@
-﻿# AERO Personal Assistant
+﻿# AERO Жеке Көмекшісі
 
-AERO is a full-stack personal productivity app with tasks, habits, notes, calendar, reminders, AI features, and OAuth login.
+AERO — тапсырмалар, әдеттер, жазбалар, күнтізбе, еске салғыштар, AI мүмкіндіктері және OAuth авторизациясы бар толыққанды өнімділік платформасы.
 
-## Stack
+## Технологиялық стек
 
 - Backend: Java 21, Spring Boot 3, Spring Security, JWT, OAuth2 Client, JPA, Flyway, PostgreSQL
 - Frontend: React 18, TypeScript, Vite, React Query, Zustand, TailwindCSS
-- Docs: Swagger / OpenAPI
+- Құжаттама: Swagger / OpenAPI
 
-## Monorepo structure
+## Репозиторий құрылымы
 
-- `aero-backend` - REST API and business logic
-- `aero-frontend` - Web client
+- `aero-backend` — REST API және бизнес-логика
+- `aero-frontend` — веб-клиент
 
-## Features
+## Негізгі мүмкіндіктер
 
-- Authentication: email/password + Google OAuth2
-- Tasks: CRUD, filters, stats
-- Habits: streak tracking and check-ins
-- Notes: categories and search
-- Calendar & events
-- Reminders with email notifications
-- Profile and preferences
-- AI chat and AI brief modules
+- Авторизация: email/password + Google OAuth2
+- Тапсырмалар: CRUD, фильтрлер, статистика
+- Әдеттер: streak (күн тізбегі) және белгілеу
+- Жазбалар: санаттар және іздеу
+- Күнтізбе және оқиғалар
+- Email еске салғыштар
+- Профиль және баптаулар
+- AI чат және AI шолу модульдері
 
-## Requirements
+## Талаптар
 
 - Node.js 18+
 - Java 21+
 - Maven 3.9+
-- Docker (optional)
+- Docker (міндетті емес)
 
-## Backend setup
+## Backend іске қосу
 
-1. Go to backend:
+1. Backend бумасына өтіңіз:
 
 ```bash
 cd aero-backend
 ```
 
-2. Create env file from example:
+2. `.env` файлын мысалдан жасаңыз:
 
 ```bash
 copy .env.example .env
 ```
 
-3. Configure at least:
+3. Кемінде мына айнымалыларды толтырыңыз:
 
 - `DB_NAME`, `DB_USERNAME`, `DB_PASSWORD`, `DB_PORT`
 - `JWT_SECRET`
 - `FRONTEND_URL=http://localhost:3000`
 - `BACKEND_URL=http://localhost:8080/api`
-- `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` (for Google OAuth)
+- `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` (Google OAuth үшін)
 
-4. Run with Docker:
+4. Docker арқылы іске қосу:
 
 ```bash
 docker compose up --build
 ```
 
-Backend will be available at `http://localhost:8080/api`.
+Backend мекенжайы: `http://localhost:8080/api`
 
-## Frontend setup
+## Frontend іске қосу
 
-1. Go to frontend:
+1. Frontend бумасына өтіңіз:
 
 ```bash
 cd aero-frontend
 ```
 
-2. Install dependencies:
+2. Тәуелділіктерді орнатыңыз:
 
 ```bash
 npm install
 ```
 
-3. Start dev server:
+3. Дамыту режимін іске қосыңыз:
 
 ```bash
 npm run dev
 ```
 
-Frontend will be available at `http://localhost:3000`.
+Frontend мекенжайы: `http://localhost:3000`
 
 ## Swagger
 
-When backend is running:
+Backend іске қосылғаннан кейін:
 
 - Swagger UI: `http://localhost:8080/api/swagger-ui/index.html`
 - OpenAPI JSON: `http://localhost:8080/api/v3/api-docs`
 
-## Google OAuth2
+## Google OAuth2 баптау
 
-Set in backend env:
+Backend `.env` ішінде:
 
 - `GOOGLE_CLIENT_ID`
 - `GOOGLE_CLIENT_SECRET`
 
-In Google Cloud Console, use redirect URI:
+Google Cloud Console ішінде Redirect URI:
 
 - `http://localhost:8080/api/login/oauth2/code/google`
 
-## Notes
+## Ескертпелер
 
-- History was rewritten to Conventional Commits format.
-- After history rewrite, push uses `--force`.
+- Коммит тарихы Conventional Commits форматына келтірілді.
+- Тарих қайта жазылғаннан кейін push `--force` арқылы жасалады.
