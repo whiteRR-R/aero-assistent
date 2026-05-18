@@ -24,7 +24,7 @@ public class NoteController {
 
     private final NoteService noteService;
 
-    
+
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -79,7 +79,7 @@ public class NoteController {
         noteService.delete(SecurityUtil.currentUserId(), id);
     }
 
-    
+
 
     @PostMapping("/categories")
     @ResponseStatus(HttpStatus.CREATED)

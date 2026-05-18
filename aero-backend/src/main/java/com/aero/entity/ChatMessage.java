@@ -25,7 +25,7 @@ public class ChatMessage {
     @Column(columnDefinition = "TEXT", nullable = false)
     private String content;
 
-    
+
     @Column(name = "tool_calls", columnDefinition = "TEXT")
     private String toolCalls;
 

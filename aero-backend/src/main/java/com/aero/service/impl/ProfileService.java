@@ -26,14 +26,14 @@ public class ProfileService {
     private final FileStorageService       fileStorage;
     private final UserMapper               userMapper;
 
-    
+
 
     @Transactional(readOnly = true)
     public UserResponse getProfile(Long userId) {
         return userMapper.toResponse(findUser(userId));
     }
 
-    
+
 
     @Transactional
     public UserResponse updateProfile(Long userId, UpdateProfileRequest req) {
@@ -52,7 +52,7 @@ public class ProfileService {
         return userMapper.toResponse(userRepo.save(user));
     }
 
-    
+
 
     @Transactional
     public UserResponse uploadAvatar(Long userId, MultipartFile file) {
@@ -69,7 +69,7 @@ public class ProfileService {
         return userMapper.toResponse(userRepo.save(user));
     }
 
-    
+
 
     @Transactional(readOnly = true)
     public List<ProfileHistoryResponse> getHistory(Long userId) {
@@ -80,7 +80,7 @@ public class ProfileService {
                 .toList();
     }
 
-    
+
 
     private User findUser(Long userId) {
         return userRepo.findById(userId)

@@ -35,7 +35,7 @@ public class TaskService {
     private final TaskMapper         taskMapper;
     private final FileStorageService fileStorage;
 
-    
+
 
     @Transactional
     public TaskResponse create(Long userId, TaskRequest req) {
@@ -44,17 +44,17 @@ public class TaskService {
         return taskMapper.toResponse(taskRepo.save(task));
     }
 
-    
+
 
     @Transactional(readOnly = true)
     public TaskResponse getById(Long userId, Long taskId) {
         return taskMapper.toResponse(findOwned(userId, taskId));
     }
 
-    
-    
-    
-    
+
+
+
+
 
     @Transactional(readOnly = true)
     public PageResponse<TaskResponse> list(
@@ -79,7 +79,7 @@ public class TaskService {
         };
     }
 
-    
+
 
     @Transactional(readOnly = true)
     public List<TaskResponse> upcoming(Long userId, int days) {
@@ -89,7 +89,7 @@ public class TaskService {
                 .map(taskMapper::toResponse).toList();
     }
 
-    
+
 
     @Transactional
     public TaskResponse update(Long userId, Long taskId, TaskRequest req) {
@@ -105,7 +105,7 @@ public class TaskService {
         return taskMapper.toResponse(taskRepo.save(task));
     }
 
-    
+
 
     @Transactional
     public TaskResponse uploadImage(Long userId, Long taskId, MultipartFile file) {
@@ -115,7 +115,7 @@ public class TaskService {
         return taskMapper.toResponse(taskRepo.save(task));
     }
 
-    
+
 
     @Transactional
     public void delete(Long userId, Long taskId) {
@@ -124,7 +124,7 @@ public class TaskService {
         taskRepo.delete(task);
     }
 
-    
+
 
     @Transactional(readOnly = true)
     public TaskStatsResponse stats(Long userId) {
@@ -142,7 +142,7 @@ public class TaskService {
         return new TaskStatsResponse(total, todo, inProgress, done, cancelled, overdue);
     }
 
-    
+
 
     private Task findOwned(Long userId, Long taskId) {
         return taskRepo.findByIdAndUserId(taskId, userId)

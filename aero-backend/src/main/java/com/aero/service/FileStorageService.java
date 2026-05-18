@@ -32,7 +32,7 @@ public class FileStorageService {
         }
     }
 
-    
+
 
 
     public String store(MultipartFile file, String subfolder) {
@@ -49,11 +49,11 @@ public class FileStorageService {
             throw new RuntimeException("Failed to store file " + filename, e);
         }
 
-        
+
         return contextPath + "/uploads/" + subfolder + "/" + filename;
     }
 
-    
+
 
 
     public void delete(String urlPath) {

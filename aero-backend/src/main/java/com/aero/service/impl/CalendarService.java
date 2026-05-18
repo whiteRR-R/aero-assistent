@@ -35,9 +35,9 @@ public class CalendarService {
     private final CalendarIntegrationRepository integrationRepo;
     private final EventRepository               eventRepo;
 
-    
 
-    
+
+
 
 
 
@@ -65,9 +65,9 @@ public class CalendarService {
         return out.toByteArray();
     }
 
-    
 
-    
+
+
 
 
 
@@ -103,7 +103,7 @@ public class CalendarService {
         return integrationRepo.findByUserIdAndProvider(userId, "google").isPresent();
     }
 
-    
+
 
 
 
@@ -118,22 +118,22 @@ public class CalendarService {
         if (integration.getTokenExpires() != null &&
             integration.getTokenExpires().isBefore(Instant.now())) {
             log.warn("Google Calendar access token expired for user {}", userId);
-            
+
             return;
         }
 
-        
-        
-        
-        
-        
+
+
+
+
+
 
         integration.setLastSyncedAt(Instant.now());
         integrationRepo.save(integration);
         log.info("Google Calendar sync completed for user {}", userId);
     }
 
-    
+
 
     private VEvent buildVEvent(Event e) {
         Date start = Date.from(e.getStartTime());

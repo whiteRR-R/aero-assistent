@@ -67,7 +67,7 @@ public class HabitController {
         habitService.delete(SecurityUtil.currentUserId(), id);
     }
 
-    
+
 
     @PostMapping("/{id}/check")
     @ResponseStatus(HttpStatus.CREATED)
@@ -86,7 +86,7 @@ public class HabitController {
         habitService.uncheck(SecurityUtil.currentUserId(), id, date);
     }
 
-    
+
 
     @GetMapping("/{id}/stats")
     @Operation(summary = "Get streak, completion rate and monthly breakdown")

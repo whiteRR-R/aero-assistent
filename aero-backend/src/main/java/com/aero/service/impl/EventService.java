@@ -28,7 +28,7 @@ public class EventService {
     private final EventMapper        eventMapper;
     private final FileStorageService fileStorage;
 
-    
+
 
     @Transactional
     public EventResponse create(Long userId, EventRequest req) {
@@ -38,14 +38,14 @@ public class EventService {
         return eventMapper.toResponse(eventRepo.save(event));
     }
 
-    
+
 
     @Transactional(readOnly = true)
     public EventResponse getById(Long userId, Long eventId) {
         return eventMapper.toResponse(findOwned(userId, eventId));
     }
 
-    
+
 
     @Transactional(readOnly = true)
     public PageResponse<EventResponse> list(Long userId, int page, int size) {
@@ -55,7 +55,7 @@ public class EventService {
         return PageResponse.of(p.map(eventMapper::toResponse));
     }
 
-    
+
 
     @Transactional(readOnly = true)
     public List<EventResponse> getByDateRange(Long userId, Instant from, Instant to) {
@@ -64,7 +64,7 @@ public class EventService {
                 .stream().map(eventMapper::toResponse).toList();
     }
 
-    
+
 
     @Transactional
     public EventResponse update(Long userId, Long eventId, EventRequest req) {
@@ -74,7 +74,7 @@ public class EventService {
         return eventMapper.toResponse(eventRepo.save(event));
     }
 
-    
+
 
     @Transactional
     public EventResponse uploadImage(Long userId, Long eventId, MultipartFile file) {
@@ -84,7 +84,7 @@ public class EventService {
         return eventMapper.toResponse(eventRepo.save(event));
     }
 
-    
+
 
     @Transactional
     public void delete(Long userId, Long eventId) {
@@ -93,7 +93,7 @@ public class EventService {
         eventRepo.delete(event);
     }
 
-    
+
 
     private Event findOwned(Long userId, Long eventId) {
         return eventRepo.findByIdAndUserId(eventId, userId)

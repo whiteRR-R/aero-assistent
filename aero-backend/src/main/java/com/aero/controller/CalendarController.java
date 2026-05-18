@@ -22,7 +22,7 @@ public class CalendarController {
 
     private final CalendarService calendarService;
 
-    
+
 
     @GetMapping(value = "/export.ics", produces = "text/calendar")
     @Operation(summary = "Export all events as iCal (.ics) — importable into any calendar app")
@@ -35,7 +35,7 @@ public class CalendarController {
                 .body(ical);
     }
 
-    
+
 
     @GetMapping("/google/status")
     @Operation(summary = "Check whether Google Calendar is connected")

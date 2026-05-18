@@ -1,8 +1,10 @@
 package com.aero.mapper;
+
 import com.aero.dto.request.TaskRequest;
 import com.aero.dto.response.TaskResponse;
 import com.aero.entity.Task;
 import org.mapstruct.*;
+
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface TaskMapper {
     TaskResponse toResponse(Task task);

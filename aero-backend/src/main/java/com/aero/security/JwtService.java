@@ -22,7 +22,7 @@ public class JwtService {
     @Value("${aero.jwt.expiration}")
     private long expirationMs;
 
-    
+
 
     public String generateAccessToken(Long userId, String email) {
         return buildToken(Map.of("userId", userId), email, expirationMs);
@@ -38,7 +38,7 @@ public class JwtService {
                 .compact();
     }
 
-    
+
 
     public String extractEmail(String token) {
         return extractClaim(token, Claims::getSubject);
@@ -52,7 +52,7 @@ public class JwtService {
         return resolver.apply(extractAllClaims(token));
     }
 
-    
+
 
     public boolean isTokenValid(String token) {
         try {
@@ -64,7 +64,7 @@ public class JwtService {
         }
     }
 
-    
+
 
     private Claims extractAllClaims(String token) {
         return Jwts.parser()

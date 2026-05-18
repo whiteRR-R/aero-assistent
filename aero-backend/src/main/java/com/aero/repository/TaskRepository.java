@@ -33,7 +33,7 @@ public interface TaskRepository extends JpaRepository<Task, Long>, JpaSpecificat
 
     long countByUserId(Long userId);
 
-    
+
     @Query(value = """
             SELECT TO_CHAR(completed_at AT TIME ZONE :timezone, 'YYYY-MM-DD') AS date,
                    COUNT(*) AS count

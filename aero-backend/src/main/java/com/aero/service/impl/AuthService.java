@@ -39,7 +39,7 @@ public class AuthService {
     @Value("${aero.jwt.refresh-expiration}")
     private long refreshTtl;
 
-    
+
 
     @Transactional
     public AuthResponse register(RegisterRequest req) {
@@ -59,7 +59,7 @@ public class AuthService {
         return buildAuthResponse(user);
     }
 
-    
+
 
     @Transactional
     public AuthResponse login(LoginRequest req) {
@@ -78,7 +78,7 @@ public class AuthService {
         return buildAuthResponse(user);
     }
 
-    
+
 
     @Transactional
     public AuthResponse refresh(String rawToken) {
@@ -92,14 +92,14 @@ public class AuthService {
             throw new UnauthorizedException("Refresh token has expired");
         }
 
-        
+
         stored.setRevoked(true);
         refreshRepo.save(stored);
 
         return buildAuthResponse(stored.getUser());
     }
 
-    
+
 
     @Transactional
     public void logout(Long userId) {
@@ -107,7 +107,7 @@ public class AuthService {
         log.info("User {} logged out — all refresh tokens revoked", userId);
     }
 
-    
+
 
     private AuthResponse buildAuthResponse(User user) {
         String accessToken  = jwtService.generateAccessToken(user.getId(), user.getEmail());

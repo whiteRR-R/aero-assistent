@@ -39,7 +39,7 @@ public class ReminderService {
     private final ReminderMapper                 reminderMapper;
     private final JavaMailSender                 mailSender;
 
-    
+
 
     @Transactional
     public ReminderResponse create(Long userId, ReminderRequest req) {
@@ -68,7 +68,7 @@ public class ReminderService {
         r.setRefType(req.refType());
         r.setRefId(req.refId());
         r.setRemindAt(req.remindAt());
-        r.setStatus(ReminderStatus.PENDING);  
+        r.setStatus(ReminderStatus.PENDING);
         r.setSentAt(null);
         return reminderMapper.toResponse(reminderRepo.save(r));
     }
@@ -85,7 +85,7 @@ public class ReminderService {
         reminderRepo.delete(findOwned(userId, reminderId));
     }
 
-    
+
 
     @Transactional(readOnly = true)
     public NotificationPrefResponse getPreferences(Long userId) {
@@ -111,9 +111,9 @@ public class ReminderService {
         return toResponse(prefRepo.save(pref));
     }
 
-    
 
-    
+
+
 
 
 
@@ -131,7 +131,7 @@ public class ReminderService {
         }
     }
 
-    
+
 
     private void sendEmail(Reminder r) {
         NotificationPreference pref = prefRepo.findById(r.getUser().getId()).orElse(null);

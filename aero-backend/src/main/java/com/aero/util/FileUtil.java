@@ -1,8 +1,10 @@
 package com.aero.util;
+
 import com.aero.exception.BadRequestException;
 import org.springframework.web.multipart.MultipartFile;
 import java.util.Set;
 import java.util.UUID;
+
 public final class FileUtil {
     private FileUtil() {}
     private static final Set<String> ALLOWED = Set.of("image/jpeg","image/png","image/webp");

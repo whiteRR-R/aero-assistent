@@ -1,6 +1,8 @@
 package com.aero.util;
+
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
+
 public final class CookieUtil {
     private CookieUtil() {}
     public static void addRefreshCookie(HttpServletResponse response, String token, int maxAgeSeconds) {

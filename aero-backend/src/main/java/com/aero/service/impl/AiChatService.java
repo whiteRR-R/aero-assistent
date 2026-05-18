@@ -47,12 +47,12 @@ public class AiChatService {
 
     private static final int MAX_HISTORY_MESSAGES = 20;
 
-    
+
 
     @Transactional
     public AiMessageResponse sendMessage(Long userId, AiChatRequest req) {
 
-        
+
         ChatConversation conv;
         if (req.conversationId() != null) {
             conv = convRepo.findByIdAndUserId(req.conversationId(), userId)
@@ -68,22 +68,22 @@ public class AiChatService {
                     .build());
         }
 
-        
+
         ChatMessage userMsg = msgRepo.save(ChatMessage.builder()
                 .conversation(conv)
                 .role(MessageRole.USER)
                 .content(req.message())
                 .build());
 
-        
+
         List<ChatMessage> history = getHistory(conv.getId());
         String userLocale = userRepo.findById(userId).map(User::getLocale).orElse("en");
         List<Map<String, Object>> geminiHistory = buildGeminiHistory(history, userLocale, userId);
 
-        
+
         List<ToolCallInfo> toolCallInfos = new ArrayList<>();
 
-        
+
         String aiText = gemini.chat(geminiHistory, (toolName, args) -> {
             Object result = executeTool(toolName, args, userId);
             toolCallInfos.add(new ToolCallInfo(toolName, summarizeTool(toolName, args, result)));
@@ -91,7 +91,7 @@ public class AiChatService {
             return result;
         });
 
-        
+
         String toolCallsJson = toolCallInfos.isEmpty() ? null : toJson(toolCallInfos);
         ChatMessage aiMsg = msgRepo.save(ChatMessage.builder()
                 .conversation(conv)
@@ -100,7 +100,7 @@ public class AiChatService {
                 .toolCalls(toolCallsJson)
                 .build());
 
-        
+
         if (conv.getTitle() == null || conv.getTitle().isBlank()) {
             conv.setTitle(truncate(req.message(), 60));
             convRepo.save(conv);
@@ -117,7 +117,7 @@ public class AiChatService {
         );
     }
 
-    
+
 
     @Transactional(readOnly = true)
     public Page<ConversationResponse> listConversations(Long userId, int page, int size) {
@@ -127,7 +127,7 @@ public class AiChatService {
                         c.getCreatedAt(), c.getUpdatedAt(), List.of()));
     }
 
-    
+
 
     @Transactional(readOnly = true)
     public ConversationResponse getConversation(Long userId, Long convId) {
@@ -149,7 +149,7 @@ public class AiChatService {
                 conv.getCreatedAt(), conv.getUpdatedAt(), items);
     }
 
-    
+
 
     @Transactional
     public void deleteConversation(Long userId, Long convId) {
@@ -158,9 +158,9 @@ public class AiChatService {
         convRepo.delete(conv);
     }
 
-    
-    
-    
+
+
+
 
     private Object executeTool(String tool, Map<String, Object> args, Long userId) {
         try {
@@ -235,9 +235,9 @@ public class AiChatService {
         return eventService.getByDateRange(userId, from, to);
     }
 
-    
-    
-    
+
+
+
 
     private List<Map<String, Object>> buildGeminiHistory(List<ChatMessage> messages, String userLocale, Long userId) {
         List<Map<String, Object>> result = new ArrayList<>();
@@ -247,7 +247,7 @@ public class AiChatService {
             default -> "English";
         };
         String languageContext = "User interface language: " + aiLanguage + ". Reply in this language unless the user explicitly asks for another.";
-        
+
         String dateContext = "Current date/time (UTC): " + Instant.now();
         result.add(Map.of("role", "user", "parts",
                 List.of(Map.of("text", languageContext))));
@@ -312,7 +312,7 @@ public class AiChatService {
     }
 
     private List<ChatMessage> getHistory(Long convId) {
-        
+
         List<ChatMessage> desc = msgRepo.findByConversationIdOrderByCreatedAtDesc(
                 convId, PageRequest.of(0, MAX_HISTORY_MESSAGES));
         List<ChatMessage> asc = new ArrayList<>(desc);

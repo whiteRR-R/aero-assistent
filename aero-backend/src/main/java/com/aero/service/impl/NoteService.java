@@ -30,7 +30,7 @@ public class NoteService {
     private final NoteCategoryRepository categoryRepo;
     private final NoteMapper             noteMapper;
 
-    
+
 
     @Transactional
     public NoteResponse create(Long userId, NoteRequest req) {
@@ -63,7 +63,7 @@ public class NoteService {
         return PageResponse.of(p.map(noteMapper::toResponse));
     }
 
-    
+
     @Transactional(readOnly = true)
     public PageResponse<NoteResponse> search(Long userId, String query, int page, int size) {
         if (!StringUtils.hasText(query)) return list(userId, null, null, page, size);
@@ -80,7 +80,7 @@ public class NoteService {
         if (req.categoryId() != null) {
             note.setCategory(findCategory(userId, req.categoryId()));
         } else if (req.categoryId() == null && note.getCategory() != null) {
-            
+
             note.setCategory(null);
         }
         return noteMapper.toResponse(noteRepo.save(note));
@@ -98,7 +98,7 @@ public class NoteService {
         noteRepo.delete(findOwned(userId, noteId));
     }
 
-    
+
 
     @Transactional
     public NoteCategoryResponse createCategory(Long userId, NoteCategoryRequest req) {
@@ -134,10 +134,10 @@ public class NoteService {
     @Transactional
     public void deleteCategory(Long userId, Long catId) {
         categoryRepo.delete(findCategory(userId, catId));
-        
+
     }
 
-    
+
 
     private Note findOwned(Long userId, Long noteId) {
         return noteRepo.findByIdAndUserId(noteId, userId)

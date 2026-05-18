@@ -12,7 +12,7 @@ public record WeeklyReviewResponse(
         long   tasksCreated,
         double completionRate,
         long   habitsCheckedIn,
-        String mostProductiveDay,   
-        double vsLastWeekPct        
+        String mostProductiveDay,
+        double vsLastWeekPct
     ) {}
 }

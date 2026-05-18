@@ -1,4 +1,5 @@
 package com.aero.repository;
+
 import com.aero.entity.Reminder;
 import com.aero.enums.ReminderStatus;
 import org.springframework.data.domain.Page;
@@ -10,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+
 public interface ReminderRepository extends JpaRepository<Reminder, Long> {
     Page<Reminder> findByUserId(Long userId, Pageable pageable);
     Optional<Reminder> findByIdAndUserId(Long id, Long userId);

@@ -38,7 +38,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
         OAuth2AuthenticationToken oauthToken = (OAuth2AuthenticationToken) authentication;
         OAuth2User oauthUser = oauthToken.getPrincipal();
-        String registrationId = oauthToken.getAuthorizedClientRegistrationId(); 
+        String registrationId = oauthToken.getAuthorizedClientRegistrationId();
 
         Map<String, Object> attrs = oauthUser.getAttributes();
 
@@ -67,19 +67,19 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         getRedirectStrategy().sendRedirect(request, response, redirectUrl);
     }
 
-    
+
 
     private String resolveEmail(String provider, Map<String, Object> attrs) {
         if ("github".equals(provider)) {
             Object login = attrs.get("login");
-            return login + "@github.oauth";   
+            return login + "@github.oauth";
         }
         return (String) attrs.get("email");
     }
 
     private String resolveProviderId(String provider, Map<String, Object> attrs) {
-        Object id = attrs.get("sub");         
-        if (id == null) id = attrs.get("id"); 
+        Object id = attrs.get("sub");
+        if (id == null) id = attrs.get("id");
         return id != null ? id.toString() : null;
     }
 }

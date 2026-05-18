@@ -1,5 +1,7 @@
 package com.aero.dto.response;
+
 import java.time.Instant;
+
 public record EventResponse(
     Long id,
     String title,

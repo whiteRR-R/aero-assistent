@@ -69,7 +69,7 @@ public class GlobalExceptionHandler {
         return problem(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred");
     }
 
-    
+
 
     private ProblemDetail problem(HttpStatus status, String detail) {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(status, detail);

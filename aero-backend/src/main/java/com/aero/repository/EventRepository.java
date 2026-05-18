@@ -17,7 +17,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 
     Optional<Event> findByIdAndUserId(Long id, Long userId);
 
-    
+
     @Query("""
             SELECT e FROM Event e
             WHERE e.user.id = :userId
@@ -31,7 +31,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
             @Param("to")     Instant to
     );
 
-    
+
     @Query("""
             SELECT e FROM Event e
             WHERE e.user.id = :userId

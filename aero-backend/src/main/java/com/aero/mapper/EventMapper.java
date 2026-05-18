@@ -1,8 +1,10 @@
 package com.aero.mapper;
+
 import com.aero.dto.request.EventRequest;
 import com.aero.dto.response.EventResponse;
 import com.aero.entity.Event;
 import org.mapstruct.*;
+
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface EventMapper {
     EventResponse toResponse(Event event);

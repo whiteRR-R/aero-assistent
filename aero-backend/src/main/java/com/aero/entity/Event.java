@@ -41,10 +41,10 @@ public class Event {
 
     private String color;
 
-    
+
     private String recurrence;
 
-    
+
     @Column(name = "external_id")
     private String externalId;
 

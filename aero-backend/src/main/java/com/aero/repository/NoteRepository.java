@@ -19,7 +19,7 @@ public interface NoteRepository extends JpaRepository<Note, Long> {
 
     Optional<Note> findByIdAndUserId(Long id, Long userId);
 
-    
+
     @Query(value = """
             SELECT * FROM notes
             WHERE user_id = :userId

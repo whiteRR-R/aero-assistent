@@ -1,6 +1,8 @@
 package com.aero.dto.response;
+
 import com.aero.enums.HabitFrequency;
 import java.time.Instant;
+
 public record HabitResponse(
     Long id,
     String name,

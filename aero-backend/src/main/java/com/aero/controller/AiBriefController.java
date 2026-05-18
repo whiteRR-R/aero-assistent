@@ -24,7 +24,7 @@ public class AiBriefController {
 
     private final AiBriefService aiBriefService;
 
-    
+
 
     @GetMapping("/heatmap")
     @Operation(summary = "Get productivity heatmap (completed tasks per day)")
@@ -33,7 +33,7 @@ public class AiBriefController {
         return ResponseEntity.ok(aiBriefService.getHeatmap(SecurityUtil.currentUserId(), days));
     }
 
-    
+
 
     @GetMapping("/daily-brief")
     @Operation(summary = "Get AI-generated personalized daily brief")
@@ -41,7 +41,7 @@ public class AiBriefController {
         return ResponseEntity.ok(aiBriefService.getDailyBrief(SecurityUtil.currentUserId()));
     }
 
-    
+
 
     @GetMapping("/weekly-review")
     @Operation(summary = "Get AI-generated weekly productivity review")
@@ -49,7 +49,7 @@ public class AiBriefController {
         return ResponseEntity.ok(aiBriefService.getWeeklyReview(SecurityUtil.currentUserId()));
     }
 
-    
+
 
     @PostMapping("/quick-capture")
     @Operation(summary = "Create task/habit/event from natural language text")

@@ -36,7 +36,7 @@ public class SecurityConfig {
     @Value("${aero.frontend.url}")
     private String frontendUrl;
 
-    
+
     private static final String[] PUBLIC_PATHS = {
             "/auth/**",
             "/oauth2/**",
@@ -84,7 +84,7 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(12);  
+        return new BCryptPasswordEncoder(12);
     }
 
     @Bean

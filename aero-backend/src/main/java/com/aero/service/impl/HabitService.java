@@ -34,7 +34,7 @@ public class HabitService {
     private final HabitCompletionRepository completionRepo;
     private final HabitMapper               habitMapper;
 
-    
+
 
     @Transactional
     public HabitResponse create(Long userId, HabitRequest req) {
@@ -43,14 +43,14 @@ public class HabitService {
         return enrich(habitRepo.save(habit));
     }
 
-    
+
 
     @Transactional(readOnly = true)
     public HabitResponse getById(Long userId, Long habitId) {
         return enrich(findOwned(userId, habitId));
     }
 
-    
+
 
     @Transactional(readOnly = true)
     public List<HabitResponse> list(Long userId, boolean activeOnly) {
@@ -60,7 +60,7 @@ public class HabitService {
         return habits.stream().map(this::enrich).toList();
     }
 
-    
+
 
     @Transactional
     public HabitResponse update(Long userId, Long habitId, HabitRequest req) {
@@ -69,7 +69,7 @@ public class HabitService {
         return enrich(habitRepo.save(habit));
     }
 
-    
+
 
     @Transactional
     public void archive(Long userId, Long habitId) {
@@ -83,7 +83,7 @@ public class HabitService {
         habitRepo.delete(findOwned(userId, habitId));
     }
 
-    
+
 
     @Transactional
     public HabitCompletionResponse checkIn(Long userId, Long habitId, HabitCheckRequest req) {
@@ -103,17 +103,17 @@ public class HabitService {
         return habitMapper.toCompletionResponse(completionRepo.save(completion));
     }
 
-    
+
 
     @Transactional
     public void uncheck(Long userId, Long habitId, LocalDate date) {
-        findOwned(userId, habitId); 
+        findOwned(userId, habitId);
         HabitCompletion c = completionRepo.findByHabitIdAndCompletedOn(habitId, date)
                 .orElseThrow(() -> new NotFoundException("No check-in found for " + date));
         completionRepo.delete(c);
     }
 
-    
+
 
     @Transactional(readOnly = true)
     public HabitStatsResponse getStats(Long userId, Long habitId) {
@@ -152,9 +152,9 @@ public class HabitService {
         );
     }
 
-    
 
-    
+
+
 
 
 
@@ -163,14 +163,14 @@ public class HabitService {
                 .findAllByHabitIdOrderByDateDesc(habitId)
                 .stream()
                 .map(HabitCompletion::getCompletedOn)
-                .sorted((a, b) -> b.compareTo(a))   
+                .sorted((a, b) -> b.compareTo(a))
                 .toList();
 
         if (allDates.isEmpty()) return new int[]{0, 0};
 
         Set<LocalDate> dateSet = allDates.stream().collect(Collectors.toSet());
 
-        
+
         int current = 0;
         LocalDate cursor = today;
         if (!dateSet.contains(cursor)) cursor = cursor.minusDays(1);
@@ -179,7 +179,7 @@ public class HabitService {
             cursor = cursor.minusDays(1);
         }
 
-        
+
         int longest = 0;
         int running = 0;
         LocalDate prev = null;
@@ -196,7 +196,7 @@ public class HabitService {
         return new int[]{current, longest};
     }
 
-    
+
 
     private HabitResponse enrich(Habit habit) {
         int[] streaks = calculateStreaks(habit.getId(), resolveToday(habit));

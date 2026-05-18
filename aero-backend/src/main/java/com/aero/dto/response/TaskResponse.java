@@ -1,8 +1,10 @@
 package com.aero.dto.response;
+
 import com.aero.enums.TaskPriority;
 import com.aero.enums.TaskStatus;
 import java.time.Instant;
 import java.util.Set;
+
 public record TaskResponse(
     Long id,
     String title,

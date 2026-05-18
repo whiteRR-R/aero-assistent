@@ -22,7 +22,7 @@ public class ReminderController {
 
     private final ReminderService reminderService;
 
-    
+
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -66,7 +66,7 @@ public class ReminderController {
         reminderService.delete(SecurityUtil.currentUserId(), id);
     }
 
-    
+
 
     @GetMapping("/preferences")
     @Operation(summary = "Get notification preferences")

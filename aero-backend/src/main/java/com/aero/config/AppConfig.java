@@ -29,7 +29,7 @@ public class AppConfig implements WebMvcConfigurer {
                 .build();
     }
 
-    
+
     @Bean(name = "taskExecutor")
     public Executor taskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
@@ -41,7 +41,7 @@ public class AppConfig implements WebMvcConfigurer {
         return executor;
     }
 
-    
+
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler("/uploads/**")

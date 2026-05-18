@@ -37,9 +37,9 @@ public class AiBriefService {
     private final Map<String, CachedBrief> dailyBriefCache = new ConcurrentHashMap<>();
     private final Map<String, CachedReview> weeklyReviewCache = new ConcurrentHashMap<>();
 
-    
-    
-    
+
+
+
 
     @Transactional(readOnly = true)
     public List<HeatmapEntry> getHeatmap(Long userId, int days) {
@@ -61,9 +61,9 @@ public class AiBriefService {
                 .collect(Collectors.toList());
     }
 
-    
-    
-    
+
+
+
 
     @Transactional(readOnly = true)
     public DailyBriefResponse getDailyBrief(Long userId) {
@@ -80,7 +80,7 @@ public class AiBriefService {
         Instant todayEnd  = todayStart.plusSeconds(86400);
         Instant ystStart  = todayStart.minusSeconds(86400);
 
-        
+
         var tasks  = taskService.list(userId, null, null, null, null, 0, 100, "deadline");
         long dueToday = tasks.content().stream()
                 .filter(t -> t.deadline() != null
@@ -89,13 +89,13 @@ public class AiBriefService {
                         && isOpenTask(t.status()))
                 .count();
 
-        
+
         long overdue = taskService.stats(userId).overdue();
 
-        
+
         var events = eventService.getByDateRange(userId, todayStart, todayEnd);
 
-        
+
         var habits = habitService.list(userId, true);
         LocalDate today = LocalDate.now(ZoneOffset.UTC);
         long habitsAtRisk = habits.stream()
@@ -104,12 +104,12 @@ public class AiBriefService {
                         .isEmpty())
                 .count();
 
-        
+
         long completedYst = taskRepo.countByUserIdAndCompletedAtBetween(userId, ystStart, todayStart);
         long createdYst   = taskRepo.countByUserIdAndCreatedAtBetween(userId, ystStart, todayStart);
         double ystRate    = createdYst > 0 ? (completedYst * 100.0 / createdYst) : 0;
 
-        
+
         String taskSummary = tasks.content().stream()
                 .filter(t -> t.deadline() != null
                         && t.deadline().isBefore(todayEnd)
@@ -162,9 +162,9 @@ public class AiBriefService {
         return response;
     }
 
-    
-    
-    
+
+
+
 
     @Transactional(readOnly = true)
     public WeeklyReviewResponse getWeeklyReview(Long userId) {
@@ -180,17 +180,17 @@ public class AiBriefService {
         Instant weekAgo  = now.minusSeconds(7L * 86400);
         Instant twoWkAgo = now.minusSeconds(14L * 86400);
 
-        
+
         long completed  = taskRepo.countByUserIdAndCompletedAtBetween(userId, weekAgo, now);
         long created    = taskRepo.countByUserIdAndCreatedAtBetween(userId, weekAgo, now);
         double compRate = created > 0 ? (completed * 100.0 / created) : 0;
 
-        
+
         long prevCompleted = taskRepo.countByUserIdAndCompletedAtBetween(userId, twoWkAgo, weekAgo);
         double vsLast = prevCompleted > 0
                 ? ((completed - prevCompleted) * 100.0 / prevCompleted) : 0;
 
-        
+
         var habits = habitService.list(userId, true);
         LocalDate weekAgoDate = LocalDate.now(ZoneOffset.UTC).minusDays(7);
         LocalDate todayDate   = LocalDate.now(ZoneOffset.UTC);
@@ -200,7 +200,7 @@ public class AiBriefService {
                         .size())
                 .sum();
 
-        
+
         var heatmap = getHeatmap(userId, 7);
         String mostProductiveDay = heatmap.stream()
                 .max(Comparator.comparingLong(HeatmapEntry::count))
@@ -210,7 +210,7 @@ public class AiBriefService {
                 })
                 .orElse("N/A");
 
-        
+
         String habitSummary = habits.stream().limit(5)
                 .map(h -> "- " + h.name() + ": streak=" + h.currentStreak())
                 .collect(Collectors.joining("\n"));
@@ -259,12 +259,12 @@ public class AiBriefService {
         return response;
     }
 
-    
-    
-    
+
+
+
 
     public QuickCaptureResponse quickCapture(Long userId, QuickCaptureRequest req) {
-        
+
         String parsePrompt = String.format("""
                 The user typed: "%s"
 
@@ -359,9 +359,9 @@ public class AiBriefService {
                 localizedCreated(locale, "event", created.title()), created);
     }
 
-    
-    
-    
+
+
+
 
     private static String extractLine(String text, String prefix) {
         return Arrays.stream(text.split("\n"))
