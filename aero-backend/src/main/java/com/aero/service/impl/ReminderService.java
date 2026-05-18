@@ -147,8 +147,8 @@ public class ReminderService {
             var helper = new MimeMessageHelper(mime, "UTF-8");
             helper.setTo(r.getUser().getEmail());
             helper.setSubject(switch (lang) {
-                case "ru" -> "AERO Напоминание: " + r.getTitle();
-                case "kk" -> "AERO Еске салғыш: " + r.getTitle();
+                case "ru" -> "AERO Reminder: " + r.getTitle();
+                case "kk" -> "AERO Reminder: " + r.getTitle();
                 default -> "AERO Reminder: " + r.getTitle();
             });
             helper.setText(buildReminderHtml(r), true);
@@ -162,9 +162,6 @@ public class ReminderService {
     private String buildReminderHtml(Reminder r) {
         String localeTag = r.getUser().getLocale() != null ? r.getUser().getLocale() : "en";
         Locale locale = Locale.forLanguageTag(localeTag);
-        String lang = localeTag.toLowerCase(Locale.ROOT).startsWith("ru")
-                ? "ru"
-                : localeTag.toLowerCase(Locale.ROOT).startsWith("kk") ? "kk" : "en";
         String tz = (r.getUser().getTimezone() == null || r.getUser().getTimezone().isBlank())
                 ? "UTC" : r.getUser().getTimezone();
 
@@ -174,30 +171,32 @@ public class ReminderService {
 
         String title = escapeHtml(r.getTitle());
         String message = escapeHtml(r.getMessage() != null && !r.getMessage().isBlank() ? r.getMessage() : r.getTitle());
-        String type = switch (r.getRefType().name()) {
-            case "TASK" -> lang.equals("ru") ? "Задача" : lang.equals("kk") ? "Тапсырма" : "Task";
-            case "EVENT" -> lang.equals("ru") ? "Событие" : lang.equals("kk") ? "Оқиға" : "Event";
-            case "HABIT" -> lang.equals("ru") ? "Привычка" : lang.equals("kk") ? "Әдет" : "Habit";
-            default -> lang.equals("ru") ? "Другое" : lang.equals("kk") ? "Басқа" : "Custom";
-        };
-        String subjectTitle = lang.equals("ru") ? "Напоминание" : lang.equals("kk") ? "Еске салғыш" : "Reminder";
-        String subjectSub = lang.equals("ru")
-                ? "Мягкое напоминание о важном"
-                : lang.equals("kk")
-                    ? "Маңызды іс туралы жұмсақ еске салу"
-                    : "A gentle nudge for what matters today";
-        String typeLabel = lang.equals("ru") ? "Тип" : lang.equals("kk") ? "Түрі" : "Type";
-        String timeLabel = lang.equals("ru") ? "Время" : lang.equals("kk") ? "Уақыты" : "Time";
-        String footer = lang.equals("ru")
-                ? "Это напоминание отправлено системой уведомлений AERO."
-                : lang.equals("kk")
-                    ? "Бұл еске салғыш AERO хабарландыру жүйесі арқылы жіберілді."
-                    : "This reminder was sent by AERO notifications.";
-        String brandLine = lang.equals("ru")
-                ? "AERO • Премиальные напоминания о продуктивности"
-                : lang.equals("kk")
-                    ? "AERO • Өнімділікке арналған премиум еске салғыштар"
-                    : "AERO • Premium productivity reminders";
+        String type = r.getRefType().name();
+        String subjectTitle = "Reminder";
+        String subjectSub = "A focused reminder to keep your day on track";
+        String footer = "This reminder was sent by AERO notifications.";
+        String brandLine = "AERO • Premium productivity reminders";
+
+        List<String> agendaItems = extractAgendaItems(r);
+        StringBuilder agendaRows = new StringBuilder();
+        for (int i = 0; i < agendaItems.size(); i++) {
+            String border = i == agendaItems.size() - 1 ? "none" : "1px solid #f3dfc1";
+            agendaRows.append("""
+                    <tr>
+                      <td style="padding:11px 12px;border-bottom:%s;">
+                        <table role="presentation" width="100%%" cellpadding="0" cellspacing="0">
+                          <tr>
+                            <td width="30" valign="top">
+                              <div style="width:24px;height:24px;border-radius:999px;background:#ffe8c8;color:#8b4a00;
+                                          font-size:12px;font-weight:800;line-height:24px;text-align:center;">%d</div>
+                            </td>
+                            <td valign="top" style="font-size:14px;line-height:1.65;color:#1f2937;">%s</td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                    """.formatted(border, i + 1, escapeHtml(agendaItems.get(i))));
+        }
 
         return """
                 <!doctype html>
@@ -207,22 +206,33 @@ public class ReminderService {
                   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
                   <title>AERO %s</title>
                 </head>
-                <body style="margin:0;padding:0;background:#f8f5ef;font-family:Inter,Segoe UI,Arial,sans-serif;color:#1f2937;">
-                  <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" style="padding:28px 12px;">
+                <body style="margin:0;padding:0;background:#f6f2ea;font-family:Inter,Segoe UI,Arial,sans-serif;color:#1f2937;">
+                  <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" style="padding:30px 12px;">
                     <tr>
                       <td align="center">
-                        <table role="presentation" width="620" cellpadding="0" cellspacing="0"
-                               style="max-width:620px;width:100%%;background:#ffffff;border:1px solid #eadfce;border-radius:14px;overflow:hidden;
-                                      box-shadow:0 8px 24px rgba(120,87,43,.08);">
+                        <table role="presentation" width="640" cellpadding="0" cellspacing="0"
+                               style="max-width:640px;width:100%%;background:#ffffff;border:1px solid #ecd9bd;border-radius:20px;overflow:hidden;
+                                      box-shadow:0 18px 45px rgba(126,76,19,.13);">
                           <tr>
-                            <td style="padding:0;">
-                              <table role="presentation" width="100%%" cellpadding="0" cellspacing="0"
-                                     style="background:linear-gradient(135deg,#b45309 0%%,#d97706 100%%);">
+                            <td style="padding:0;background:linear-gradient(140deg,#9a4300 0%%,#d46800 58%%,#f08b1d 100%%);">
+                              <table role="presentation" width="100%%" cellpadding="0" cellspacing="0">
                                 <tr>
-                                  <td style="padding:24px 24px 18px 24px;">
-                                    <div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#ffedd5;font-weight:700;">AERO</div>
-                                    <div style="font-size:24px;font-weight:800;margin-top:8px;color:#ffffff;line-height:1.2;">%s</div>
-                                    <div style="margin-top:10px;font-size:13px;color:#ffedd5;">%s</div>
+                                  <td style="padding:26px 24px 24px 24px;">
+                                    <table role="presentation" width="100%%" cellpadding="0" cellspacing="0">
+                                      <tr>
+                                        <td valign="top">
+                                          <div style="font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:#fff2e2;font-weight:900;">AERO</div>
+                                          <div style="font-size:34px;font-weight:900;margin-top:10px;color:#ffffff;line-height:1.1;">%s</div>
+                                          <div style="margin-top:8px;font-size:14px;color:#fff3e3;line-height:1.6;">%s</div>
+                                        </td>
+                                        <td align="right" valign="top">
+                                          <div style="display:inline-block;padding:7px 11px;border-radius:999px;background:rgba(255,255,255,.19);
+                                                      border:1px solid rgba(255,255,255,.35);font-size:11px;color:#fff9f2;font-weight:700;">
+                                            %s
+                                          </div>
+                                        </td>
+                                      </tr>
+                                    </table>
                                   </td>
                                 </tr>
                               </table>
@@ -230,27 +240,60 @@ public class ReminderService {
                           </tr>
                           <tr>
                             <td style="padding:24px;">
-                              <div style="font-size:22px;font-weight:700;line-height:1.35;color:#1f2937;">%s</div>
-                              <div style="margin-top:14px;padding:14px 16px;background:#fffbf5;border:1px solid #f3e4cf;border-radius:10px;
-                                          font-size:14px;line-height:1.75;color:#374151;">%s</div>
+                              <div style="font-size:26px;font-weight:850;line-height:1.3;color:#1f2937;">%s</div>
+                              <div style="margin-top:14px;padding:16px;background:#fffcf7;border:1px solid #f1e2cb;border-radius:12px;
+                                          font-size:14px;line-height:1.85;color:#374151;">%s</div>
 
-                              <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" style="margin-top:16px;background:#fffdfa;border:1px solid #f1e7d8;border-radius:10px;">
+                              <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" style="margin-top:16px;">
                                 <tr>
-                                  <td style="font-size:12px;color:#6b7280;padding:12px 14px 6px 14px;">%s</td>
-                                  <td align="right" style="font-size:12px;color:#1f2937;font-weight:700;padding:12px 14px 6px 14px;">
-                                    <span style="display:inline-block;background:#fff3e0;color:#92400e;padding:4px 10px;border-radius:999px;border:1px solid #f3d2a2;">%s</span>
+                                  <td width="50%%" style="padding-right:7px;">
+                                    <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" style="background:#fff8ef;border:1px solid #f3dcc0;border-radius:12px;">
+                                      <tr><td style="padding:11px 12px 0 12px;font-size:11px;color:#8b6c42;text-transform:uppercase;font-weight:700;">Type</td></tr>
+                                      <tr><td style="padding:6px 12px 12px 12px;font-size:13px;color:#1f2937;font-weight:700;">
+                                        <span style="display:inline-block;background:#ffe9cf;color:#8f4600;padding:5px 11px;border-radius:999px;border:1px solid #f0cfa1;">%s</span>
+                                      </td></tr>
+                                    </table>
+                                  </td>
+                                  <td width="50%%" style="padding-left:7px;">
+                                    <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" style="background:#fff8ef;border:1px solid #f3dcc0;border-radius:12px;">
+                                      <tr><td style="padding:11px 12px 0 12px;font-size:11px;color:#8b6c42;text-transform:uppercase;font-weight:700;">Time</td></tr>
+                                      <tr><td style="padding:6px 12px 12px 12px;font-size:15px;color:#1f2937;font-weight:800;line-height:1.4;">%s</td></tr>
+                                    </table>
                                   </td>
                                 </tr>
+                              </table>
+
+                              <table role="presentation" width="100%%" cellpadding="0" cellspacing="0"
+                                     style="margin-top:16px;background:#fffcf8;border:1px solid #f4dfbf;border-radius:12px;overflow:hidden;">
                                 <tr>
-                                  <td style="font-size:12px;color:#6b7280;padding:6px 14px 12px 14px;">%s</td>
-                                  <td align="right" style="font-size:12px;color:#1f2937;font-weight:700;padding:6px 14px 12px 14px;">%s</td>
+                                  <td style="padding:12px 13px;background:#fff4e4;border-bottom:1px solid #f4dfbf;
+                                             font-size:12px;font-weight:800;color:#8f4f12;text-transform:uppercase;">
+                                    Quick action plan
+                                  </td>
+                                </tr>
+                                %s
+                              </table>
+
+                              <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" style="margin-top:16px;">
+                                <tr>
+                                  <td width="50%%" style="padding-right:7px;">
+                                    <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" style="border:1px solid #f2e3cc;border-radius:10px;background:#fffdfa;">
+                                      <tr><td style="padding:9px 12px 2px 12px;font-size:11px;color:#8b6c42;text-transform:uppercase;font-weight:700;">Status</td></tr>
+                                      <tr><td style="padding:2px 12px 10px 12px;font-size:14px;color:#1f2937;font-weight:700;">Active</td></tr>
+                                    </table>
+                                  </td>
+                                  <td width="50%%" style="padding-left:7px;">
+                                    <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" style="border:1px solid #f2e3cc;border-radius:10px;background:#fffdfa;">
+                                      <tr><td style="padding:9px 12px 2px 12px;font-size:11px;color:#8b6c42;text-transform:uppercase;font-weight:700;">Reminder ID</td></tr>
+                                      <tr><td style="padding:2px 12px 10px 12px;font-size:14px;color:#1f2937;font-weight:700;">#%d</td></tr>
+                                    </table>
+                                  </td>
                                 </tr>
                               </table>
                             </td>
                           </tr>
                           <tr>
-                            <td style="padding:16px 24px;border-top:1px solid #f1e7d8;background:#fffbf5;
-                                       font-size:12px;color:#6b7280;line-height:1.6;">
+                            <td style="padding:16px 24px;border-top:1px solid #f1e7d8;background:#fffbf5;font-size:12px;color:#6b7280;line-height:1.6;">
                               %s
                             </td>
                           </tr>
@@ -261,7 +304,33 @@ public class ReminderService {
                   </table>
                 </body>
                 </html>
-                """.formatted(subjectTitle, subjectTitle, subjectSub, title, message, typeLabel, escapeHtml(type), timeLabel, remindAt, footer, brandLine);
+                """.formatted(subjectTitle, subjectTitle, subjectSub, remindAt, title, message, escapeHtml(type), remindAt, agendaRows, r.getId(), footer, brandLine);
+    }
+
+    private static List<String> extractAgendaItems(Reminder r) {
+        java.util.ArrayList<String> items = new java.util.ArrayList<>();
+        if (r.getMessage() != null && !r.getMessage().isBlank()) {
+            for (String part : r.getMessage().split("[\\n;]+")) {
+                String normalized = part.trim();
+                if (!normalized.isEmpty()) {
+                    items.add(normalized);
+                }
+                if (items.size() >= 3) {
+                    break;
+                }
+            }
+        }
+        if (items.isEmpty()) {
+            items.add(r.getTitle());
+            items.add("Prepare needed details and materials");
+            items.add("Mark it done when completed");
+        } else if (items.size() == 1) {
+            items.add("Prepare needed details and materials");
+            items.add("Mark it done when completed");
+        } else if (items.size() == 2) {
+            items.add("Mark it done when completed");
+        }
+        return items;
     }
 
     private static String escapeHtml(String value) {
@@ -296,3 +365,4 @@ public class ReminderService {
                 minutes, p.getDailyDigest(), p.getDigestTime());
     }
 }
+
