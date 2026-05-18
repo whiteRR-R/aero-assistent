@@ -147,8 +147,8 @@ public class ReminderService {
             var helper = new MimeMessageHelper(mime, "UTF-8");
             helper.setTo(r.getUser().getEmail());
             helper.setSubject(switch (lang) {
-                case "ru" -> "AERO Reminder: " + r.getTitle();
-                case "kk" -> "AERO Reminder: " + r.getTitle();
+                case "ru" -> "AERO Напоминание: " + r.getTitle();
+                case "kk" -> "AERO Еске салғыш: " + r.getTitle();
                 default -> "AERO Reminder: " + r.getTitle();
             });
             helper.setText(buildReminderHtml(r), true);
@@ -162,6 +162,9 @@ public class ReminderService {
     private String buildReminderHtml(Reminder r) {
         String localeTag = r.getUser().getLocale() != null ? r.getUser().getLocale() : "en";
         Locale locale = Locale.forLanguageTag(localeTag);
+        String lang = localeTag.toLowerCase(Locale.ROOT).startsWith("ru")
+                ? "ru"
+                : localeTag.toLowerCase(Locale.ROOT).startsWith("kk") ? "kk" : "en";
         String tz = (r.getUser().getTimezone() == null || r.getUser().getTimezone().isBlank())
                 ? "UTC" : r.getUser().getTimezone();
 
@@ -171,32 +174,30 @@ public class ReminderService {
 
         String title = escapeHtml(r.getTitle());
         String message = escapeHtml(r.getMessage() != null && !r.getMessage().isBlank() ? r.getMessage() : r.getTitle());
-        String type = r.getRefType().name();
-        String subjectTitle = "Reminder";
-        String subjectSub = "A focused reminder to keep your day on track";
-        String footer = "This reminder was sent by AERO notifications.";
-        String brandLine = "AERO • Premium productivity reminders";
-
-        List<String> agendaItems = extractAgendaItems(r);
-        StringBuilder agendaRows = new StringBuilder();
-        for (int i = 0; i < agendaItems.size(); i++) {
-            String border = i == agendaItems.size() - 1 ? "none" : "1px solid #f3dfc1";
-            agendaRows.append("""
-                    <tr>
-                      <td style="padding:11px 12px;border-bottom:%s;">
-                        <table role="presentation" width="100%%" cellpadding="0" cellspacing="0">
-                          <tr>
-                            <td width="30" valign="top">
-                              <div style="width:24px;height:24px;border-radius:999px;background:#ffe8c8;color:#8b4a00;
-                                          font-size:12px;font-weight:800;line-height:24px;text-align:center;">%d</div>
-                            </td>
-                            <td valign="top" style="font-size:14px;line-height:1.65;color:#1f2937;">%s</td>
-                          </tr>
-                        </table>
-                      </td>
-                    </tr>
-                    """.formatted(border, i + 1, escapeHtml(agendaItems.get(i))));
-        }
+        String type = switch (r.getRefType().name()) {
+            case "TASK" -> lang.equals("ru") ? "Задача" : lang.equals("kk") ? "Тапсырма" : "Task";
+            case "EVENT" -> lang.equals("ru") ? "Событие" : lang.equals("kk") ? "Оқиға" : "Event";
+            case "HABIT" -> lang.equals("ru") ? "Привычка" : lang.equals("kk") ? "Әдет" : "Habit";
+            default -> lang.equals("ru") ? "Другое" : lang.equals("kk") ? "Басқа" : "Custom";
+        };
+        String subjectTitle = lang.equals("ru") ? "Напоминание" : lang.equals("kk") ? "Еске салғыш" : "Reminder";
+        String subjectSub = lang.equals("ru")
+                ? "Короткое напоминание, чтобы не забыть важное"
+                : lang.equals("kk")
+                ? "Маңыздыны ұмытпауға арналған қысқа еске салғыш"
+                : "A short reminder so nothing important is missed";
+        String typeLabel = lang.equals("ru") ? "Тип" : lang.equals("kk") ? "Түрі" : "Type";
+        String timeLabel = lang.equals("ru") ? "Время" : lang.equals("kk") ? "Уақыты" : "Time";
+        String footer = lang.equals("ru")
+                ? "Это напоминание отправлено системой уведомлений AERO."
+                : lang.equals("kk")
+                ? "Бұл еске салғыш AERO хабарландыру жүйесі арқылы жіберілді."
+                : "This reminder was sent by AERO notifications.";
+        String brandLine = lang.equals("ru")
+                ? "AERO • Напоминания для продуктивного дня"
+                : lang.equals("kk")
+                ? "AERO • Өнімді күнге арналған еске салғыштар"
+                : "AERO • Productivity reminders";
 
         return """
                 <!doctype html>
@@ -268,25 +269,7 @@ public class ReminderService {
                                 <tr>
                                   <td style="padding:12px 13px;background:#fff4e4;border-bottom:1px solid #f4dfbf;
                                              font-size:12px;font-weight:800;color:#8f4f12;text-transform:uppercase;">
-                                    Quick action plan
-                                  </td>
-                                </tr>
-                                %s
-                              </table>
-
-                              <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" style="margin-top:16px;">
-                                <tr>
-                                  <td width="50%%" style="padding-right:7px;">
-                                    <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" style="border:1px solid #f2e3cc;border-radius:10px;background:#fffdfa;">
-                                      <tr><td style="padding:9px 12px 2px 12px;font-size:11px;color:#8b6c42;text-transform:uppercase;font-weight:700;">Status</td></tr>
-                                      <tr><td style="padding:2px 12px 10px 12px;font-size:14px;color:#1f2937;font-weight:700;">Active</td></tr>
-                                    </table>
-                                  </td>
-                                  <td width="50%%" style="padding-left:7px;">
-                                    <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" style="border:1px solid #f2e3cc;border-radius:10px;background:#fffdfa;">
-                                      <tr><td style="padding:9px 12px 2px 12px;font-size:11px;color:#8b6c42;text-transform:uppercase;font-weight:700;">Reminder ID</td></tr>
-                                      <tr><td style="padding:2px 12px 10px 12px;font-size:14px;color:#1f2937;font-weight:700;">#%d</td></tr>
-                                    </table>
+                                    %s
                                   </td>
                                 </tr>
                               </table>
@@ -304,33 +287,7 @@ public class ReminderService {
                   </table>
                 </body>
                 </html>
-                """.formatted(subjectTitle, subjectTitle, subjectSub, remindAt, title, message, escapeHtml(type), remindAt, agendaRows, r.getId(), footer, brandLine);
-    }
-
-    private static List<String> extractAgendaItems(Reminder r) {
-        java.util.ArrayList<String> items = new java.util.ArrayList<>();
-        if (r.getMessage() != null && !r.getMessage().isBlank()) {
-            for (String part : r.getMessage().split("[\\n;]+")) {
-                String normalized = part.trim();
-                if (!normalized.isEmpty()) {
-                    items.add(normalized);
-                }
-                if (items.size() >= 3) {
-                    break;
-                }
-            }
-        }
-        if (items.isEmpty()) {
-            items.add(r.getTitle());
-            items.add("Prepare needed details and materials");
-            items.add("Mark it done when completed");
-        } else if (items.size() == 1) {
-            items.add("Prepare needed details and materials");
-            items.add("Mark it done when completed");
-        } else if (items.size() == 2) {
-            items.add("Mark it done when completed");
-        }
-        return items;
+                """.formatted(subjectTitle, subjectTitle, subjectSub, remindAt, title, message, typeLabel, escapeHtml(type), timeLabel, remindAt, footer, brandLine);
     }
 
     private static String escapeHtml(String value) {
