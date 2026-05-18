@@ -80,6 +80,16 @@ function OAuth2Callback() {
     }
   }
 
+  const deriveNameFromEmail = (email: string) => {
+    const localPart = (email || '').split('@')[0] || 'User'
+    const cleaned = localPart.replace(/[._-]+/g, ' ').trim()
+    if (!cleaned) return 'User'
+    return cleaned
+      .split(' ')
+      .map((part) => part ? part[0].toUpperCase() + part.slice(1) : '')
+      .join(' ')
+  }
+
   useEffect(() => {
     const token = params.get('token') || params.get('accessToken')
     const refreshToken = params.get('refreshToken') || ''
@@ -88,10 +98,12 @@ function OAuth2Callback() {
     import('@/api/client').then(({ setTokens }) => {
       setTokens(token, refreshToken)
       const payload = parseJwtPayload(token)
+      const email = String(payload?.sub ?? '')
+      const userId = Number(payload?.userId ?? 0)
       setUser({
-        id: Number(payload?.sub ?? 0),
-        email: String(payload?.email ?? ''),
-        fullName: 'OAuth User',
+        id: Number.isFinite(userId) ? userId : 0,
+        email,
+        fullName: deriveNameFromEmail(email),
         avatarUrl: null,
         bio: null,
         timezone: 'UTC',
