@@ -61,20 +61,25 @@ public class AuthService {
         if (userRepo.existsByEmail(req.email())) {
             throw new ConflictException("Email already registered: " + req.email());
         }
+        boolean mailConfigured = isMailConfigured();
 
         User user = User.builder()
                 .email(req.email())
                 .passwordHash(encoder.encode(req.password()))
                 .fullName(req.fullName())
-                .enabled(false)
+                .enabled(!mailConfigured)
                 .provider("local")
                 .build();
 
         userRepo.save(user);
-        createAndSendVerificationToken(user);
-        log.info("New user registered (email verification pending): {}", user.getEmail());
+        if (mailConfigured) {
+            createAndSendVerificationToken(user);
+            log.info("New user registered (email verification pending): {}", user.getEmail());
+            return new MessageResponse("Registration successful. Please verify your email.");
+        }
 
-        return new MessageResponse("Registration successful. Please verify your email.");
+        log.info("New user registered (auto-enabled, mail is not configured): {}", user.getEmail());
+        return new MessageResponse("Registration successful.");
     }
 
 
@@ -90,7 +95,12 @@ public class AuthService {
         }
 
         if (!user.getEnabled()) {
-            throw new UnauthorizedException("Account is disabled");
+            if (!isMailConfigured()) {
+                user.setEnabled(true);
+                userRepo.save(user);
+            } else {
+                throw new UnauthorizedException("Account is disabled. Verify your email first.");
+            }
         }
 
         return buildAuthResponse(user);
@@ -189,7 +199,7 @@ public class AuthService {
 
     private void sendVerificationEmail(String email, String token) {
         String verifyUrl = backendUrl + "/auth/verify-email?token=" + token;
-        if (mailSender instanceof JavaMailSenderImpl impl && (impl.getUsername() == null || impl.getUsername().isBlank())) {
+        if (!isMailConfigured()) {
             log.warn("Mail is not configured. Verification link for {}: {}", email, verifyUrl);
             return;
         }
@@ -203,5 +213,10 @@ public class AuthService {
         } catch (Exception ex) {
             log.warn("Failed to send verification email to {}. Link: {}", email, verifyUrl, ex);
         }
+    }
+
+    private boolean isMailConfigured() {
+        return !(mailSender instanceof JavaMailSenderImpl impl)
+                || (impl.getUsername() != null && !impl.getUsername().isBlank());
     }
 }
