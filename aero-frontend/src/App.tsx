@@ -63,19 +63,47 @@ function OAuth2Callback() {
   const navigate = useNavigate()
   const { setUser } = useAuthStore()
 
+  const parseJwtPayload = (token: string): Record<string, unknown> | null => {
+    try {
+      const payload = token.split('.')[1]
+      if (!payload) return null
+      const base64 = payload.replace(/-/g, '+').replace(/_/g, '/')
+      const json = decodeURIComponent(
+        atob(base64)
+          .split('')
+          .map((c) => '%' + c.charCodeAt(0).toString(16).padStart(2, '0'))
+          .join('')
+      )
+      return JSON.parse(json)
+    } catch {
+      return null
+    }
+  }
+
   useEffect(() => {
     const token = params.get('token') || params.get('accessToken')
     if (!token) { navigate('/login'); return }
     
     import('@/api/client').then(({ setTokens }) => {
       setTokens(token, '')
+      const payload = parseJwtPayload(token)
+      setUser({
+        id: Number(payload?.sub ?? 0),
+        email: String(payload?.email ?? ''),
+        fullName: 'OAuth User',
+        avatarUrl: null,
+        bio: null,
+        timezone: 'UTC',
+        locale: 'en',
+        provider: 'oauth',
+        createdAt: new Date().toISOString(),
+      })
+      navigate('/dashboard', { replace: true })
+
       import('@/api/profile.api').then(({ profileApi }) => {
         profileApi.get()
-          .then(user => { setUser(user); navigate('/dashboard', { replace: true }) })
-          .catch(() => {
-            import('@/api/client').then(({ clearTokens }) => clearTokens())
-            navigate('/login', { replace: true })
-          })
+          .then(user => { setUser(user) })
+          .catch(() => { })
       })
     })
   }, [params, navigate, setUser])
