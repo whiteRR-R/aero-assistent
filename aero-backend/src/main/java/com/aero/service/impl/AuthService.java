@@ -61,24 +61,16 @@ public class AuthService {
         if (userRepo.existsByEmail(req.email())) {
             throw new ConflictException("Email already registered: " + req.email());
         }
-        boolean mailConfigured = isMailConfigured();
-
         User user = User.builder()
                 .email(req.email())
                 .passwordHash(encoder.encode(req.password()))
                 .fullName(req.fullName())
-                .enabled(!mailConfigured)
+                .enabled(true)
                 .provider("local")
                 .build();
 
         userRepo.save(user);
-        if (mailConfigured) {
-            createAndSendVerificationToken(user);
-            log.info("New user registered (email verification pending): {}", user.getEmail());
-            return new MessageResponse("Registration successful. Please verify your email.");
-        }
-
-        log.info("New user registered (auto-enabled, mail is not configured): {}", user.getEmail());
+        log.info("New user registered: {}", user.getEmail());
         return new MessageResponse("Registration successful.");
     }
 
@@ -94,13 +86,11 @@ public class AuthService {
             throw new UnauthorizedException("Invalid email or password");
         }
 
-        if (!user.getEnabled()) {
-            if (!isMailConfigured()) {
-                user.setEnabled(true);
-                userRepo.save(user);
-            } else {
-                throw new UnauthorizedException("Account is disabled. Verify your email first.");
-            }
+        if (!user.getEnabled() && "local".equalsIgnoreCase(user.getProvider())) {
+            user.setEnabled(true);
+            userRepo.save(user);
+        } else if (!user.getEnabled()) {
+            throw new UnauthorizedException("Account is disabled");
         }
 
         return buildAuthResponse(user);
