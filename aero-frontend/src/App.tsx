@@ -82,10 +82,11 @@ function OAuth2Callback() {
 
   useEffect(() => {
     const token = params.get('token') || params.get('accessToken')
+    const refreshToken = params.get('refreshToken') || ''
     if (!token) { navigate('/login'); return }
     
     import('@/api/client').then(({ setTokens }) => {
-      setTokens(token, '')
+      setTokens(token, refreshToken)
       const payload = parseJwtPayload(token)
       setUser({
         id: Number(payload?.sub ?? 0),

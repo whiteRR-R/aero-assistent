@@ -1,6 +1,8 @@
 package com.aero.security;
 
 import com.aero.entity.User;
+import com.aero.entity.RefreshToken;
+import com.aero.repository.RefreshTokenRepository;
 import com.aero.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -21,10 +23,12 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -33,11 +37,14 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
     private final JwtService        jwtService;
     private final UserRepository    userRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
     private final OAuth2AuthorizedClientService authorizedClientService;
     private final RestClient        restClient = RestClient.builder().build();
 
     @Value("${aero.frontend.url}")
     private String frontendUrl;
+    @Value("${aero.jwt.refresh-expiration}")
+    private long refreshTtl;
 
     @Override
     public void onAuthenticationSuccess(
@@ -75,9 +82,11 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         user = userRepository.save(user);
 
         String accessToken = jwtService.generateAccessToken(user.getId(), user.getEmail());
+        String refreshToken = createRefreshToken(user);
 
         String redirectUrl = UriComponentsBuilder.fromUriString(frontendUrl + "/oauth2/callback")
                 .queryParam("token", accessToken)
+                .queryParam("refreshToken", refreshToken)
                 .build().toUriString();
 
         getRedirectStrategy().sendRedirect(request, response, redirectUrl);
@@ -140,5 +149,17 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         Object id = attrs.get("sub");
         if (id == null) id = attrs.get("id");
         return id != null ? id.toString() : null;
+    }
+
+    private String createRefreshToken(User user) {
+        String raw = UUID.randomUUID().toString();
+        refreshTokenRepository.save(
+                RefreshToken.builder()
+                        .user(user)
+                        .token(raw)
+                        .expiresAt(Instant.now().plusMillis(refreshTtl))
+                        .build()
+        );
+        return raw;
     }
 }
